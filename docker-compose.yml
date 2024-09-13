@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: ./docker/images/nginx
+    volumes:
+      - ./:/var/www/project/:cached
+    ports:
+      - 8080:80
+    networks:
+      - chamedanyar-net
+  fpm:
+    build:
+      context: ./docker/images/fpm
+      args:
+        - BUILD_ENV=prod
+    volumes:
+      - ./:/var/www/project/:cached # Location of the project for php-fpm. Note this should be the same for NGINX.*
+    networks:
+      - chamedanyar-net
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgis/postgis:16-3.4-alpine
+    networks:
+      - chamedanyar-net
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - ./var/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+###> doctrine/doctrine-bundle ###
+  database_data:
+
+###< doctrine/doctrine-bundle ###
+
+networks:
+  chamedanyar-net:

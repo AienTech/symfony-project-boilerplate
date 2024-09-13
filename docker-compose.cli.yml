@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  php:
+    networks:
+      - chamedanyar-net
+    build:
+      context: ./docker/images/php
+    volumes:
+      - ".:/opt/project"
+      - "composer-cache:/.composer/cache"
+  database:
+    extends:
+      file: docker-compose.yml
+      service: database
+
+volumes:
+  composer-cache:
+
+networks:
+  chamedanyar-net:
